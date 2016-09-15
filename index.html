@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="A layout example that shows off a responsive product landing page.">
+
+	<title>XBee Frame Generator</title>
+
+	<link rel="stylesheet" href="pure.css">
+	<link rel="stylesheet" href="main.css">
+	<script language="Javascript">
+	// Derivative work done by Sten Feldman (C) 2015
+	// Original work retrieved on 2015-02-13 from:
+	// http://ftp1.digi.com/support/utilities/digi_apiframes2.htm
+	//-------------------------------------------------------
+	//Copyright (C) 2012 Digi International Inc.  All Rights Reserved.
+	//
+	//This software (“Digi Software”) is provided, without charge, by Digi International Inc. (“Digi”)
+	//and may only be used by Digi customers and subject to the following terms:
+	//
+	// PERMISSION
+	// Permission is granted, to any person obtaining a copy of Digi Software, to
+	//(i)	copy, modify, merge, and produce object code files from the Digi Software and
+	//(ii)	distribute copies of the Digi Software, as modified or original code, in source code
+	//or object code files;
+	//provided the following conditions are met:
+	//(i)	each source code file shall contain this notice [the text of the notice begins
+	//with “Copyright (C) 2012” and ends with “-------/”]
+	//(ii)	the Digi Software, whether modified, unmodified or contained in code derived
+	//from the Digi Software, may only be used with products sold by Digi or that contain components sold by Digi.
+	//
+	//OWNERSHIP
+	//This Digi Software is not distributed under an open source license, and Digi does not consent
+	//to combining the Digi Software with code that, when combined with this Digi Software, could result
+	//in the Digi Software being treated as having been released under an open source license.
+	//All modifications or improvements to the Digi Software or derivative works based on the Digi Software are the property of Digi.
+	//
+	//WARRANTY
+	//DIGI SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	//OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	//FITNESS FOR A PARTICULAR PURPOSE, OR NONINFRINGEMENT.
+	//
+	//LIABILITY
+	//IN NO EVENT SHALL DIGI BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	//TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE DIGI SOFTWARE OR USE OF THE DIGI SOFTWARE.
+	//
+	//-------------------------------------------------------
+	// Thanks
+	// To Doug George for the idea of using class/object names as values in list databases.
+	// To Stephen Thurber for api frame description text
+	// History
+	// ver 0.01 - google chrome - works fine, but nothing works under IE, and only partially works under Firefox
+	// ver 0.02 - works under google chrome 5.0.375.127 and firefox 3.6.8, but not IE
+	// Added doc for 0x17 frame type.
+	// ver 0.03 - works under IE 8.0.7600.16385
+	// added doc for frame types 0x90, 92, 94, 95, 97, A0
+	// ver 0.04 - moved Table1 to the top spanning 2 columns, Tables 2 and 3 side by side and below Table 1
+	// ver 0.05 - by suggestion of DG, button press of frame type launches both frame build table and documentation table
+	// Table 3 given a white background for readability
+	// ver 0.06 - by suggestion of DG, added AP1/AP2 buttons.  AP2 mode selects escaping of 4 particular byte values.
+	// ver 0.07 - fixed 0x91 checksum field in table 2.
+	// ver 0.08 - added 0xA5 Join Notification; fixed problem with FrameID value field overwrite - was putting 1 in the fourth value field
+	// of every frame type whether that frame type had a frame id field or not.
+	// ver 0.09 - corrected a typo in 0x91 where an offset read as "16" instead of "15".
+	// ver 0.10 - changed number of columns from 5 to 4
+	// ver 0.11 - fixed description for 0x8a
+	// ver 0.12 - changed AT command field type from 2 to -2 for api frame type 0x97
+	//
+	// ver 2.01 - changed api frame type selection from a button press to a select/option drop down combo box.
+	//				added description of mouseover selected field to appear at rightmost of top line
+	// ver 2.02 - fixed bug in API mode where AP2 was default.  Now AP1 is default and AP mode is combobox selectable.
+	// ver 2.03 - dropped mouseover function which caused page to jump; extended field table to include Description column.
+	//              intent is to eventually delete Table3.
+	// ver 2.05 - Used idea contributed by Doug George for using class names as a frame specifier element.
+	//              For example, the second part of a field list item now holds the function to be used for encoding the field
+	//              and data type is now represented by an object/function name instead of a coded value.
+	//              Used javascript ideas described in http://devlicio.us/blogs/sergio_pereira/archive/2009/02/09/javascript-5-ways-to-call-a-function.aspx
+	// ver 2.06 - Dropped Table3 and links database which were no longer needed.
+	// ver 2.07 - Concept of nested definitions of frames as composed of fields as composed of bytes. Edited description strings.
+	// ver 2.08 - Added generic frame maker
+	// ver 2.09 - finished 0xA3-0xA5, 0x00-0x80.  10 left to do
+	// ver 2.0a - 82,83,84,85,87,89,8D,8E
+	//            rewrite of tx options description
+	// ver 2.0b - fixed browser compatibility problems with Firefox, IE8
+	// ver 2.0c - edited a description; fixed field descriptors by removing "_foo" from field names.
+	// ver 2.0d - Added to Tx Status, status code descriptions.
+	// ver 2.0e - Gave description elements a white background.  Added a drop down combo box control to select device type,
+	//            which in turn selects the appropriate list of frame types for the first drop down combo box control.
+	// ver 2.0f - Thanks to C.A., lists of frame types as a function of firmware type have been corrected.
+	// ver 2.0g - Thanks to L.J., IE wasn't supporting the dynamic frame list like other browsers.
+	// ver 2.0h - Thanks to C.A., 0x17 had a missing 16 bit address field.
+	//            Frame type descriptions now formatted with "0x%02x" instead of "0x%x"
+	//            FrameID fields now have a default value of 1 instead of 0 so that a response is the default instead of no response.
+	// ver 2.0i - Device Type drop down box now shows the selected type after a selection is made, rather than "All Frames" all the time.
+	//            Added XTend and XTend Mesh as device types.
+	// ver 2.0j - Added 0x89 status codes for 0x03, 0x04, 0x76.
+	//            Removed 'ZigBee' from frame names as often the frames are also used in DigiMesh and WiFi products.
+	// ver 2.0k - When Device Type is changed, the first frame type is selected by default, and the fields for that frame type are displayed.
+	// ver 2.0l - Non mesh XTend does not support frame types 0x08, 0x88; Renamed device types for the two XTends
+	// ver 2.0m - Renamed device type DigiMesh 2.4 as XBee DigiMesh; Added frames types 0x8D, 0x8E to XBee DigiMesh and XTend DigiMesh
+	// ver 2.0n - Added readonly fields for the delimiter byte, length bytes, and checksum byte.
+	// ver 2.0o - DigiMesh's 0x95 does not have DigiProfileId, DigiManuId, SrcEvent, or DeviceType fields like the ZB 0x95,
+	//            so GetLinks function was added to remove the last 4 fields as a function of selected device type and frame type.
+	// ver 2.0p - Added 0x97 frame type to ZigBee device type
+	// ver 2.0q - Added 0xc105 as a profile id
+	// ver 2.0r - Added status 0x18 to api frame 0xA0
+	// ver 2.0s - Length field is high by 4.
+	// ver 2.0t - Added url arguments ?<frame>&<apmode>&<device>&<cmd> (cmd if frame is AT command)
+	// ver 2.0u - 802.15.4 CmdOptions should use 0x01 for apply changes instead of 0x02
+	// ver 2.0v - modem status has 2 new status codes 0x0b (Network woke up) 0x0c (Network went to sleep)
+	//
+	// TTDO
+	//
+	// those two byte field descriptors can be one byte, which map to a table of triples: datatype, fieldname, description
+	// API field in Table2 should be readonly
+	// Field labels are usually associated one-to-one with Descriptions
+	// Supported types:             08, 09, 10, 11, 17, 21, 24,                                 88,     8A, 8B,             90, 91, 92, 94, 95, 97, A0, A1, A2, A3, A4, A5
+	// Defined in M:\Engineering\SW_Documentation\XBee (All products)\X-API.docx
+	//                  00, 01, 07, 08, 09, 10, 11, 17, 21, 24, 80, 81, 82, 83, 84, 85,[86],87, 88, 89, 8A, 8B, 8C, 8D, 8E, 90, 91, 92, 94, 95, 97, A0, A1, A2, A3, A4, A5,
+	//                  [ F0-FF reserved  for internal use F0, FF; 0x86 is a don't care as of 12/14/11 ]
+	// WiFI: 0A, 20, 8F, B0
+	// NI string 0x85
+	// 0x86 allows 64/16 bit Dest Addr, 64/16 bit Src Addr, depends on mode
+	// if you change API mode, and a Packet exists, update the packet.
+	/*
+	( ) JavaScript
+			http://home.cogeco.ca/~ve3ll/jstutor4.htm
+			setTimeout( functionname, msecs )
+			document.images.adBanner.src = <image>
+			function gotoAd(){ location.href="http://"+array[index];}
+			<a href="javascript:gotoAd()"><img id="adBanner"></a>
+	( ) frame editor GUI
+			- doesn't have to be field/form based.  Consider radio buttons, combo boxes, checkboxes
+			- on mouseover to display descriptive text for a field
+			- Representation: octets, datatype, fieldname, description, valid range, xref
+			- XML/JSON, Tom Collins
+			- class name as element of representation, Doug George
+			- conditional fields?
+					exhaustively enumerate combinations
+					indicate which field defines length of this field
+					use a class/function to define length/presence of the field
+					< enumerate these 'complex' frames and determine commonalities >
+	( ) Online, up to date list of Digi Frame Types ?
+	LJ: New WiFi manual
+	DG: M:\Engineering\SW_Documentation\XBee (All products)\X-API.docx
+	ST: WiFi, 0A, 20, 8F, B0
+	Manual is at M:\Engineering\Projects\XBee 802.11\Manual.
+	The latest version is called 90002124_D_cmts.pdf.
+	It contains all API frame types except 0A, which hasn’t been released yet.
+	*/
+
+	var thecmd;
+
+	function d2h(d,n){
+		// convert decimal value to hexadecimal
+		var s = d.toString(16);
+		// left pad with zeroes to get length of n
+		while( s.length < n ){ s = "0"+s; }
+		return s;
+	}
+
+	function d2h0x(d,n){
+		// convert decimal value to hexadecimal preceded by "0x"
+		var s = d2h(d,n);
+		return "0x"+s;
+	}
+
+	function pHexDigit(c){
+		// is the character a hexadecimal digit or not?
+		var h = "0123456789ABCDEFabcdef";
+		for(var i=0;i<h.length;i++){
+			if( c == h[i] ) return 1;
+		}
+		return 0;
+	}
+
+	function ExtractBytes( s, n ){
+		// return hex string less any whitespace or nonhexadecimal characters
+		s = s.toUpperCase();
+		var r = "";
+		var i;
+		for(i=0;i<s.length;i++){
+			if( pHexDigit(s[i]) ){
+				r+=s.substr(i,1)
+			}
+			//***ttdo alert if nonwhitespace, nonhex characters appear
+		}
+		if( n == 0 ){
+			// ensure even number of characters
+			while( r.length%2 ) r = "0"+r;
+		}else{
+			// extend length to desired length
+			//***ttdo alert if too many characters according to field length
+			while( r.length < (n*2) ) r = "0"+r;
+		}
+		return r
+	}
+	function ExtractCmd( field ){
+			// return two ascii character command converted to a 2 hex byte list
+			var item = ""
+			field = field.toUpperCase()
+			for( var j=0;j<field.length;j++){
+				var c = field.charCodeAt(j)
+				item += d2h(c,2)
+			}
+			return item
+	}
+	function ExtractString( field ){
+			var item = ""
+			field = field.toUpperCase()
+			for( var j=0;j<field.length;j++){
+				var c = field.charCodeAt(j)
+				item += d2h(c,2)
+			}
+			item += d2h(0,2)
+			return item
+	}
+	var tByte = {
+		defaultvalue: '00',
+		thetype: 'Byte',
+		GetBytes: ExtractBytes,
+		FieldLength: 1
+	};
+	var tByte1 = {
+		defaultvalue: '01',
+		thetype: 'Byte',
+		GetBytes: ExtractBytes,
+		FieldLength: 1
+	};
+	var tWord = {
+		defaultvalue: '0000',
+		thetype: 'Word',
+		GetBytes: ExtractBytes,
+		FieldLength: 2
+	};
+	var tEUI64 = {
+		defaultvalue: '0000000000000000',
+		thetype: 'EUI64',
+		GetBytes: ExtractBytes,
+		FieldLength: 8
+	};
+	var tNwk16 = {
+		defaultvalue: '0000',
+		thetype: 'NWK16',
+		GetBytes: ExtractBytes,
+		FieldLength: 2
+	};
+	var tToEnd = {
+		defaultvalue: '',
+		thetype: 'Variable',
+		GetBytes: ExtractBytes,
+		FieldLength: 0
+	};
+	var tCmd = {
+		defaultvalue: 'AA',
+		thetype: 'ATCmd',
+		GetBytes: ExtractCmd,
+		FieldLength: 2
+	}
+	var tString = {
+		defaultvalue: 'AZ',
+		thetype: 'String',
+		GetBytes: ExtractString,
+		FieldLength: 0
+	}
+	var tKey = {
+		defaultvalue: '0123456789ABCDEF0123456789ABCDEF',
+		thetype: 'Key',
+		GetBytes: ExtractBytes,
+		FieldLength: 16
+	}
+	var tTimeStamp = {
+		defaultvalue: '01020304',
+		thetype: 'TimeStamp',
+		GetBytes: ExtractBytes,
+		FieldLength: 4
+	}
+	var tIPv4 = {
+		defaultvalue:'10600101',
+		thetype: 'IP',
+		GetBytes: ExtractBytes,
+		FieldLength: 4
+	}
+
+	// Objects for Ascii Table
+	var ascii64bDest = {
+	  r0: '--------------------',
+		r1: '____________________',
+		r2: ' 64-bitDestination  ',
+		r3: '--------------------',
+		//: '        r4          '
+		r5: '--------------------'
+
+	}
+
+	var ascii64bSrc = {
+	  r0: '--------------------',
+		r1: '____________________',
+		r2: ' 64-bit Source Addr ',
+		r3: '--------------------',
+		//: '        r4          '
+		r5: '--------------------'
+
+	}
+
+	var asciiBCRadius = {
+		r0: '----------',
+		r1: '__________',
+		r2: ' BCRadius ',
+		r3: '----------',
+		//: '    r4    '
+		r5: '----------'
+	}
+
+	var asciiClusterID = {
+		r0: '-----------',
+		r1: '___________',
+		r2: ' ClusterID ',
+		r3: '-----------',
+		//: '    r4     '
+		r5: '-----------'
+	}
+
+	var asciiDest16 = {
+		r0: '--------',
+		r1: '________',
+		r2: ' Dest16 ',
+		r3: '--------',
+		//: '  r4    '
+		r5: '--------'
+	}
+
+	var asciiDestEndP = {
+		r0: '------------',
+		r1: '____________',
+		r2: ' DestEndPnt ',
+		r3: '------------',
+		//: '     r4     '
+		r5: '------------'
+	}
+
+  var asciiID = {
+		r0: '----',
+		r1: '____',
+		r2: ' ID ',
+		r3: '----',
+		//: ' r4 ',
+		r5: '----'
+	}
+
+	var asciiOptions = {
+		r0: '---------',
+		r1: '_________',
+		r2: ' Options ',
+		r3: '---------',
+		//: '   r4    '
+		r5: '---------'
+	}
+
+	var asciiPayload = {
+		r0: '----------------',
+		r1: '________________',
+		r2: '  Data Payload  ',
+		r3: '----------------',
+		//: '      r4        '
+		r5: '----------------'
+	}
+
+	var asciiProfileID = {
+		r0: '-----------',
+		r1: '___________',
+		r2: ' ProfileID ',
+		r3: '-----------',
+		//: '    r4     '
+		r5: '-----------'
+	}
+
+	var asciiSrc16 = {
+		r0: '--------',
+		r1: '________',
+		r2: ' Src.16 ',
+		r3: '--------',
+		//: '  r4    '
+		r5: '--------'
+	}
+
+	var asciiSrcEndP = {
+		r0: '-----------',
+		r1: '___________',
+		r2: ' SrcEndPnt ',
+		r3: '-----------',
+		//: '    r4     '
+		r5: '-----------'
+	}
+
+	var asciiType = {
+		r0: '------',
+		r1: '______',
+		r2: ' Type ',
+		r3: '------',
+		//  '  r4  '
+		r5: '------'
+	}
+
+	var asciiFieldSeparator = {
+		r0: '-',
+		r1: '_',
+		r2: '|',
+		r3: '+',
+		r4: '|',
+		r5: '+'
+	}
+
+	var asciiFieldNotImplemented = {
+		r0:'!!! Not Implemented !!!'
+	}
+
+	// encoded frame information
+	// frametype; frame name; list of [ field name, field type object name ]
+	var links = [
+							[0xFF, 'Generic Frame', [["API",tByte, asciiType], ["Payload",tToEnd, asciiPayload]]],
+							[0x00, 'Tx64 Request', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["64DestAddr",tEUI64, asciiFieldNotImplemented], ["Options_1",tByte, asciiFieldNotImplemented], ["RFData_1",tToEnd, asciiFieldNotImplemented]]],
+							[0x01, 'Tx16 Request', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["16DestAddr",tNwk16, asciiFieldNotImplemented], ["Options_3",tByte, asciiFieldNotImplemented], ["RFData_1",tToEnd, asciiFieldNotImplemented]]],
+							[0x07, 'Remote AT Command (deprecated in 802.15.4 10C3 - use 0x17)', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["64DestAddr",tEUI64, asciiFieldNotImplemented], ["CmdOptions",tByte, asciiFieldNotImplemented], ["AT Cmd",tCmd, asciiFieldNotImplemented], ["AT CmdData",tToEnd, asciiFieldNotImplemented]]],
+							[0x08, 'AT Command', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["AT Cmd",tCmd, asciiFieldNotImplemented], ["AT CmdData",tToEnd, asciiFieldNotImplemented]]],
+							[0x09, 'AT Command Queue Register Value', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["AT Cmd",tCmd, asciiFieldNotImplemented], ["Queued AT CmdData",tToEnd, asciiFieldNotImplemented]]],
+							[0x10, 'Transmit Request', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["64DestAddr",tEUI64, asciiFieldNotImplemented], ["16DestAddr",tNwk16, asciiFieldNotImplemented], ["Radius",tByte, asciiFieldNotImplemented], ["Options",tByte, asciiFieldNotImplemented], ["RFData",tToEnd, asciiFieldNotImplemented]]],
+							[0x11, 'Explicit Addressing Command Frame', [["API",tByte, asciiType], ["FrameID",tByte1, asciiID], ["64DestAddr",tEUI64, ascii64bDest], ["16DestAddr",tNwk16, asciiDest16], ["SrcEP",tByte, asciiSrcEndP], ["DestEP",tByte, asciiDestEndP], ["ClusterID",tWord, asciiClusterID], ["ProfileID",tWord, asciiProfileID], ["Radius",tByte, asciiBCRadius], ["Options",tByte, asciiOptions], ["RFData",tToEnd, asciiPayload]]],
+							[0x17, 'Remote AT Command', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["64DestAddr",tEUI64, asciiFieldNotImplemented], ["16DestAddr",tNwk16, asciiFieldNotImplemented], ["CmdOptions",tByte, asciiFieldNotImplemented], ["AT Cmd",tCmd, asciiFieldNotImplemented], ["AT CmdData",tToEnd, asciiFieldNotImplemented]]],
+							[0x20, 'TX IPv4', [["API",tByte, asciiFieldNotImplemented], ["FrameID_20",tByte, asciiFieldNotImplemented], ["IPv4DestAddr",tIPv4, asciiFieldNotImplemented], ["16DestPort",tWord, asciiFieldNotImplemented], ["16SrcPort",tWord, asciiFieldNotImplemented], ["Protocol",tByte, asciiFieldNotImplemented],["IPTxOptions",tByte, asciiFieldNotImplemented],["RF_Data_20",tToEnd, asciiFieldNotImplemented]]],
+							[0x21, 'Create Source Route', [["API",tByte, asciiFieldNotImplemented], ["FrameID_",tByte, asciiFieldNotImplemented], ["64DestAddr",tEUI64, asciiFieldNotImplemented], ["16DestAddr",tNwk16, asciiFieldNotImplemented], ["Options_",tByte, asciiFieldNotImplemented], ["#RouteRecords",tByte, asciiFieldNotImplemented], ["RouteRecords",tToEnd, asciiFieldNotImplemented]]],
+							[0x24, 'Register Joining Device', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["64DeviceAddr",tEUI64, asciiFieldNotImplemented], ["16DeviceAddr",tNwk16, asciiFieldNotImplemented], ["Options",tByte, asciiFieldNotImplemented], ["Key",tKey, asciiFieldNotImplemented]]],
+							[0x80, 'Rx64 Indicator', [["API",tByte, asciiFieldNotImplemented], ["64SrcAddr",tEUI64, asciiFieldNotImplemented], ["RSSI",tByte, asciiFieldNotImplemented], ["Options_2",tByte, asciiFieldNotImplemented], ["RxData",tToEnd, asciiFieldNotImplemented]]],
+							[0x81, 'Rx16 Indicator', [["API",tByte, asciiFieldNotImplemented], ["16SrcAddr",tNwk16, asciiFieldNotImplemented], ["RSSI",tByte, asciiFieldNotImplemented], ["Options_2",tByte, asciiFieldNotImplemented], ["RxData",tToEnd, asciiFieldNotImplemented]]],
+							[0x82, 'DIO/ADC Rx64 Indicator', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["64SrcAddr",tEUI64, asciiFieldNotImplemented], ["RSSI",tByte, asciiFieldNotImplemented], ["Options_2",tByte, asciiFieldNotImplemented], ["Rx_Data_1",tToEnd, asciiFieldNotImplemented]]],
+							[0x83, 'DIO/ADC Rx16 Indicator', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["16SrcAddr",tNwk16, asciiFieldNotImplemented], ["RSSI",tByte, asciiFieldNotImplemented], ["Options_2",tByte, asciiFieldNotImplemented], ["Rx_Data_1",tToEnd, asciiFieldNotImplemented]]],
+							[0x84, '1-Wire Sensor Read-64 Indicator', [["API",tByte, asciiFieldNotImplemented], ["64SrcAddr",tEUI64, asciiFieldNotImplemented], ["Options_2",tByte, asciiFieldNotImplemented], ["1WireSensors",tByte, asciiFieldNotImplemented], ["ADValues",tEUI64, asciiFieldNotImplemented], ["TempRead",tWord]]],
+							[0x85, 'ND Response Indicator', [["API",tByte, asciiFieldNotImplemented], ["16SrcAddr",tNwk16, asciiFieldNotImplemented], ["64SrcAddr",tEUI64, asciiFieldNotImplemented], ["NI String",tToEnd, asciiFieldNotImplemented]]],
+							[0x87, 'Remote AT Command Response', [["API",tByte, asciiFieldNotImplemented], ["FrameID_3",tByte, asciiFieldNotImplemented], ["64RspAddr",tEUI64, asciiFieldNotImplemented], ["AT Cmd",tCmd, asciiFieldNotImplemented], ["Status_4",tByte, asciiFieldNotImplemented], ["Cmd Data",tToEnd, asciiFieldNotImplemented]]],
+							[0x88, 'AT Command Response', [["API",tByte, asciiFieldNotImplemented], ["FrameID_3",tByte, asciiFieldNotImplemented], ["AT Cmd",tCmd, asciiFieldNotImplemented], ["CmdStatus_88",tByte, asciiFieldNotImplemented], ["CmdData",tToEnd, asciiFieldNotImplemented]]],
+							[0x89, 'Tx Status', [["API",tByte, asciiFieldNotImplemented], ["FrameID_3",tByte, asciiFieldNotImplemented], ["Status_89",tByte, asciiFieldNotImplemented]]],
+							[0x8A, 'Modem Status', [["API",tByte, asciiFieldNotImplemented], ["ModemStatus",tByte, asciiFieldNotImplemented]]],
+							[0x8B, 'Tx Status', [["API",tByte, asciiFieldNotImplemented], ["FrameID",tByte1, asciiFieldNotImplemented], ["16DestAddr",tNwk16, asciiFieldNotImplemented], ["Transmit Retries",tByte, asciiFieldNotImplemented], ["Delivery Status",tByte, asciiFieldNotImplemented], ["Discovery Status",tByte, asciiFieldNotImplemented]]],
+							[0x8D, 'Route Information Packet', [["API",tByte, asciiFieldNotImplemented], ["Source Event",tByte, asciiFieldNotImplemented], ["Length",tByte, asciiFieldNotImplemented], ["TimeStamp",tTimeStamp, asciiFieldNotImplemented], ["Ack Timeout Count",tByte, asciiFieldNotImplemented], ["Reserved",tByte, asciiFieldNotImplemented], ["Reserved",tByte, asciiFieldNotImplemented], ["Destination Address",tEUI64, asciiFieldNotImplemented], ["Source Address",tEUI64, asciiFieldNotImplemented], ["Responder Address",tEUI64, asciiFieldNotImplemented], ["Receiver Address",tEUI64, asciiFieldNotImplemented]]],
+							[0x8E, 'Aggregate Addressing Update', [["API",tByte, asciiFieldNotImplemented], ["FormatID",tByte, asciiFieldNotImplemented], ["NewAddr",tEUI64, asciiFieldNotImplemented], ["OldAddr",tEUI64, asciiFieldNotImplemented]]],
+							[0x8F, 'IO Data Sample Rx Indicator', [["API",tByte, asciiFieldNotImplemented], ["64IPSrcAddr",tEUI64, asciiFieldNotImplemented], ["RSSI_20",tByte, asciiFieldNotImplemented], ["RcvOptions_20",tByte, asciiFieldNotImplemented], ["#Samples_20",tByte, asciiFieldNotImplemented], ["DigitalChannelMask",tWord, asciiFieldNotImplemented], ["AnalogChannelMask",tByte, asciiFieldNotImplemented], ["DigitalSamples_20",tWord, asciiFieldNotImplemented], ["AnalogSample_20",tToEnd, asciiFieldNotImplemented]]],
+							[0x90, 'Receive Packet', [["API",tByte, asciiFieldNotImplemented], ["64SrcAddr",tEUI64, asciiFieldNotImplemented], ["16SrcAddr",tNwk16, asciiFieldNotImplemented], ["Rcv Options",tByte, asciiFieldNotImplemented], ["RcvdData",tToEnd, asciiFieldNotImplemented]]],
+							[0x91, 'Explicit Rx Indicator', [["API",tByte, asciiType], ["64SrcAddr",tEUI64, ascii64bSrc], ["16SrcAddr",tNwk16, asciiSrc16], ["SrcEP",tByte, asciiSrcEndP], ["DestEP",tByte, asciiDestEndP], ["ClusterID",tWord, asciiClusterID], ["ProfileID",tWord, asciiProfileID], ["Rcv Options",tByte, asciiOptions], ["RFData",tToEnd, asciiPayload]]],
+							[0x92, 'IO Data Sample Rx Indicator', [["API",tByte, asciiFieldNotImplemented], ["64SrcAddr",tEUI64, asciiFieldNotImplemented], ["16SrcAddr",tNwk16, asciiFieldNotImplemented], ["Rcv Options",tByte, asciiFieldNotImplemented], ["NumSamples",tByte, asciiFieldNotImplemented], ["DigitalMask",tWord, asciiFieldNotImplemented], ["AnalogMask",tByte, asciiFieldNotImplemented], ["Samples",tToEnd, asciiFieldNotImplemented]]],
+							[0x94, 'XBee Sensor Read Indicator', [["API",tByte, asciiFieldNotImplemented], ["64SrcAddr",tEUI64, asciiFieldNotImplemented], ["16SrcAddr",tNwk16, asciiFieldNotImplemented], ["Rcv Options",tByte, asciiFieldNotImplemented], ["1WireSensors",tByte, asciiFieldNotImplemented], ["ADValues",tEUI64, asciiFieldNotImplemented], ["TempRead",tWord, asciiFieldNotImplemented]]],
+							[0x95, 'Node Identification Indicator', [["API",tByte, asciiFieldNotImplemented], ["64SndrAddr",tEUI64, asciiFieldNotImplemented], ["16SndrAddr",tNwk16, asciiFieldNotImplemented], ["Rcv Options",tByte, asciiFieldNotImplemented], ["16RemAddr",tNwk16, asciiFieldNotImplemented], ["64RemAddr",tEUI64, asciiFieldNotImplemented], ["NI String",tString, asciiFieldNotImplemented], ["16ParAddr",tNwk16, asciiFieldNotImplemented], ["DeviceType",tByte, asciiFieldNotImplemented], ["SrcEvent",tByte, asciiFieldNotImplemented], ["DigiProfileId",tWord, asciiFieldNotImplemented], ["DigiManuId",tWord, asciiFieldNotImplemented]]],
+							[0x97, 'Remote Command Response', [["API",tByte, asciiFieldNotImplemented], ["FrameID_3",tByte, asciiFieldNotImplemented], ["64RemAddr",tEUI64, asciiFieldNotImplemented], ["16RemAddr",tNwk16, asciiFieldNotImplemented], ["AT Cmd",tCmd, asciiFieldNotImplemented], ["RemStatus",tByte, asciiFieldNotImplemented], ["CmdData",tToEnd, asciiFieldNotImplemented]]],
+							[0xA0, 'Over-the-Air Firmware Update Status', [["API",tByte, asciiFieldNotImplemented], ["64RemAddr",tEUI64, asciiFieldNotImplemented], ["16UpdaterAddr",tNwk16, asciiFieldNotImplemented], ["Rcv Options",tByte, asciiFieldNotImplemented], ["BootloaderMsgType",tByte, asciiFieldNotImplemented], ["Block#",tByte, asciiFieldNotImplemented], ["64TargetAddr",tEUI64, asciiFieldNotImplemented]]],
+							[0xA1, 'Route Record Indicator', [["API",tByte, asciiFieldNotImplemented], ["64SrcAddr",tEUI64, asciiFieldNotImplemented], ["16SrcAddr",tNwk16, asciiFieldNotImplemented], ["Rcv Options",tByte, asciiFieldNotImplemented], ["#RouteRecords",tByte, asciiFieldNotImplemented], ["RouteRecords",tToEnd, asciiFieldNotImplemented]]],
+							[0xA2, 'Device Authenticated Indicator', [["API",tByte, asciiFieldNotImplemented], ["64AuthAddr",tEUI64, asciiFieldNotImplemented], ["16AuthAddr",tNwk16, asciiFieldNotImplemented], ["Status_",tByte, asciiFieldNotImplemented]]],
+							[0xA3, 'Many to One Route Request Indicator', [["API",tByte, asciiFieldNotImplemented], ["64ColAddr",tEUI64, asciiFieldNotImplemented], ["16ColAddr",tNwk16, asciiFieldNotImplemented], ["Rsvrd",tByte, asciiFieldNotImplemented]]],
+							[0xA4, 'Register Joining Device Status', [["API",tByte, asciiFieldNotImplemented], ["FrameID_2",tByte, asciiFieldNotImplemented], ["Status_2",tByte, asciiFieldNotImplemented]]],
+							[0xA5, 'Join Notification Status', [["API",tByte, asciiFieldNotImplemented], ["16ParentAddr",tNwk16, asciiFieldNotImplemented], ["16NewNodeAddr",tNwk16, asciiFieldNotImplemented], ["64NewNodeAddr",tEUI64, asciiFieldNotImplemented], ["Status_3",tByte, asciiFieldNotImplemented]]],
+							[0xB0, 'RX IPv4', [["API",tByte, asciiFieldNotImplemented], ["FrameID_20",tByte, asciiFieldNotImplemented], ["IPv4SrcAddr",tIPv4, asciiFieldNotImplemented], ["16DestPort",tWord, asciiFieldNotImplemented], ["16SrcPort",tWord, asciiFieldNotImplemented], ["Protocol",tByte, asciiFieldNotImplemented], ["Status_20",tByte, asciiFieldNotImplemented], ["RF_Data_20",tToEnd, asciiFieldNotImplemented]]]
+							] ;
+
+	String.prototype.replaceAt=function(index, character) {
+		return this.substr(0, index) + character + this.substr(index+character.length);
+	}
+
+	function GetLinks( n ){
+			// 1) The DigiMesh devices use a shortened form of 0x95 than the ZB, SE, ZNet devices.
+			// 2) 802.15.4 uses 0x01 CmdOptions value for apply changes, others use 0x02
+			var result;
+			var selectedDevice;
+
+			selectedDevice = document.getElementById("DeviceType").selectedIndex;
+			// 1)
+			if( ( links[n][0] == 0x95 ) && (( selectedDevice < 3 ) || ( selectedDevice > 5 )) ){
+					result = [ links[n][0], links[n][1], links[n][2].slice( 0, links[n][2].length-4 ) ];
+			}else{
+					result = links[n];
+			}
+			// 2)
+			if( ( links[n][0] == 0x17 ) && ( selectedDevice == 1 ) ){
+				result = [0x17,'Remote AT Command',[["API",tByte, asciiFieldNotImplemented],["FrameID",tByte1, asciiFieldNotImplemented],["64DestAddr",tEUI64, asciiFieldNotImplemented],["16DestAddr",tNwk16, asciiFieldNotImplemented],["CmdOptions_802_15_4",tByte, asciiFieldNotImplemented],["AT Cmd",tCmd, asciiFieldNotImplemented],["AT CmdData",tToEnd, asciiFieldNotImplemented]]]
+			}
+			return result;
+	}
+
+	function ApplyEscapingMode( r ){
+		// r: input, a hex byte string like "7E00022311CB"
+
+		// if API Mode 2 is selected, then escape the necessary bytes
+		// after the start delimiter, length bytes thru checksum byte,
+		// to escape a character, insert 0x7D and follow it with the byte to be escaped xor'd with 0x20
+		// data bytes which need escaping: 0x7E, 0x7D, 0x11, 0x13
+
+		// for testing
+		// for example, 7E 00 02 23 11 CB -> 7E 00 02 23 [ 7D 31 ] CB
+		//result = "7E00022311CB"
+
+		var b = document.getElementById("APIMode");
+			if( b.selectedIndex == 0 ) return r;
+		// the 2 characters which form the start delimiter do not require escaping
+		var newresult = r.substr(0,2);
+			// for each 2 character hexbyte
+		for(var i=2;i<r.length;i+=2){
+			var v = r.substr(i,2);
+					// if the byte value is escapable
+			if( (v=="7E") || (v=="7D") || (v=="11") || (v=="13") ){
+							// insert 7D to indicate an escaped value follows
+							// and then escape the value by logically xor-ing with 0x20
+				newresult += "7D" + d2h( parseInt("0x"+v)^0x20, 2);
+			}else{
+				newresult += v;
+			}
+		}
+		return newresult;
+	}
+
+	function MakeFrame(){
+		var n = document.getElementById("selectedframe").selectedIndex;
+		var thelist = GetLinks(n)[2];
+		var result="";
+		var i;
+		var item;
+
+		// create a list of hex bytes for the frame
+		// for each field in the frame
+		//		extract the data from the textarea
+		//		convert to hex bytes
+		// prepend the start delimiter and length bytes
+		// calculate and append the checksum byte
+		// do escaping if AP2 mode is selected
+		for(i=0;i<thelist.length;i++){
+					var name = "f"+i.toString();
+					var field = document.getElementById(name).value
+					var item = "";
+					item = thelist[i][1].GetBytes(field,thelist[i][1].FieldLength);
+			result += item
+		}
+
+		// add 7e delimiter, length bytes, checksum byte, capitalize, insert space between bytes
+		// calculate checksum
+		var checksum = 0;
+		for(i=0;i<result.length;i+=2){
+			checksum += parseInt("0x"+result.substr(i,2))
+		}
+
+		checksum = 0xff - (checksum%256);
+		checksum = d2h(checksum,2);
+
+		// assemble start delimiter, length bytes, frame, and checksum into a hex string
+		result = "7E" + d2h(result.length/2,4) + result + checksum;
+
+			document.getElementById("Length").innerHTML = d2h((result.length/2-4),4);
+			document.getElementById("Checksum").innerHTML = checksum;
+
+		// shift to upper case
+		result = result.toUpperCase();
+			result = ApplyEscapingMode( result );
+
+		// insert a space between bytes
+		var result2 = result.substr(0,2);
+		for(i=2;i<result.length;i+=2) result2 += " " + result.substr(i,2);
+
+		// convert to Ruby Array
+		var resultRubyArray = "[ 0x" + result2.replace(/ /g, ", 0x") + " ]";
+
+		document.getElementById("origPacket").value = result2;
+		document.getElementById("rubyFrame").value = resultRubyArray;
+
+		MakeAsciiTable(n);
+
+	}
+
+	function DescLookup( desc ){
+			if( desc == "16DestPort" ) return "Destination's UDP or TCP port number"
+			if( desc == "16SrcPort" )  return "Source's UDP or TCP port number"
+			if( desc == "16UpdaterAddr") return "Updater device 16-bit network address."
+			if( desc == "1WireSensors" ) return "Bitfield of sensors that were read.<br>0x01 - A/D Sensor Read<br>0x02 - Temperature Sensor Read<br>0x80 - Water present (module CD pin low )"
+			if( desc == "64RspAddr" ) return "Responder's 64-bit (MAC/EUI64) device address."
+			if( desc == "64DeviceAddr" ) return "Registrant's 64-bit (MAC/EUI64) device address."
+			if( desc == "16DeviceAddr" ) return "Registrant's 16-bit device address."
+			if( desc == "16ColAddr" ) return "Collector's 16-bit address."
+			if( desc == "64ColAddr" ) return "Collector's 64-bit (MAC/EUI64) device address."
+			if( desc == "16AuthAddr" ) return "Authenticated 16-bit device address."
+			if( desc == "64AuthAddr" ) return "Authenticated 64-bit (MAC/EUI64) device address."
+			if( desc == "16ParAddr" ) return "Indicates the 16-bit address of the remote's parent or 0xFFFE if the remote has no parent."
+			if( desc == "16DestAddr" ) return "Destination 16-bit network address, if known.<br>Use 0xFFFE if the address is unknown, or if sending a broadcast.<br>Other reserved addresses:<br>0xFFFC - broadcast to all routers;<br>0xFFFD - broadcast to all non-sleepy devices;<br>0xFFFF - broadcast to all devices including sleepy ED."
+			if( desc == "64DestAddr" ) return "Destination 64-bit (MAC/EUI64) address.<br>The following addresses are also supported:<br>0x0000000000000000 - Reserved for the coordinator.<br>0x000000000000FFFF - Broadcast address";
+			if( desc == "64SndrAddr" ) return "Sender 64-bit (MAC/EUI64) address."
+			if( desc == "16SndrAddr" ) return "Sender 16-bit address."
+			if( desc == "64SrcAddr" ) return "Sender 64-bit (MAC/EUI64) address.<br>Set to 0xFFFFFFFFFFFFFFFF (unknown 64-bit address) if the sender's 64 bit address is unknown."
+			if( desc == "16SrcAddr" ) return "Sender 16-bit network address, if known. Set to 0xFFFE if unknown."
+			if( desc == "16RemAddr" ) return "Set to the 16-bit network address of the remote.  Set to 0xFFFE if unknown."
+			if( desc == "64RemAddr" ) return "Set to the 64-bit (MAC/EUI64) address of the remote module which sourced this frame."
+			if( desc == "64TargetAddr" ) return "Set to the 64-bit (MAC/EUI64) address of the target device being updated."
+			if( desc == "16ParentAddr" ) return "Parent device's 16-bit address."
+			if( desc == "16NewNodeAddr" ) return "Joining device's proposed 16-bit address."
+			if( desc == "64NewNodeAddr" ) return "Joining device's 64-bit (MAC/EUI64) device address."
+			if( desc == "Ack Timeout Count" ) return "The number of MAC ACK timeouts."
+			if( desc == "ADValues" ) return "Indicates a two-byte value for each of four A/D sensors (A,B,C,D).<br>Set to 0xFFFFFFFFFFFFFFFF if no A/Ds are found."
+			if( desc == "AnalogMask" ) return "Bitmask field that indicates which analog IO lines on the remote have sampling enabled (if any).<br>Supply Voltage | NA | NA | NA | AD3 | AD2 | AD1 | AD0"
+			if( desc == "API" ) return "Frame Type";
+			if( desc == "AT Cmd" ) return "Command name of two ASCII characters.";
+			if( desc == "AT CmdData" ) return "If present, set the register to this value.<br>If absent, get the value of the register.<br>String values should be terminated with a zero byte.";
+			if( desc == "Block#" ) return "Block number used in the update request.<br>Set to 0 if not applicable."
+			if( desc == "BootloaderMsgType" ) return "0x06 - Ack<br>0x15 - Nack<br>0x18 Cancel OTA (sent by the target, must wait 60 secs before attempting another OTA update)<br>0x40 - No MAC Ack<br>0x51 - Query (received if the bootloader is not active on the target)<br>0x52 - Query Response"
+			if( desc == "ClusterID" ) return "Destination Cluster ID."
+			if( desc == "CmdStatus" ) return "0 - OK<br> 1 - Error<br>2 - Invalid Command<br>3 - Invalid Parameter<br>4 - Tx Failure"
+			if( desc == "CmdStatus_88" ) return "0 - OK<br> 1 - Error<br>2 - Invalid Command<br>3 - Invalid Parameter<br>4 - Tx Failure<br><br>In DigiMesh the most significant nibble is a bitfield as follows:<br>0x40 - RSSI information is included in the response<br>0x80 - Response is a remote command."
+			if( desc == "CmdData" ) return "Register data in binary format.  If register was set in the AT Command then this field is not returned."
+			if( desc == "Cmd Data" ) return "Binary data response.  Some commands send a null terminated ASCII string, but the null terminator is NOT sent."
+			if( desc == "CmdOptions" ) return "0x02 - Apply changes on remote device.<br><i>NOTE: If this bit is not set, an AC (or WR+FR) command must be sent before changes will take effect.</i><br>All other bits must be set to zero."
+			if( desc == "CmdOptions_802_15_4" ) return "0x01 - Apply changes on remote device.<br><i>NOTE: If this bit is not set, an AC (or WR+FR) command must be sent before changes will take effect.</i><br>All other bits must be set to zero."
+			if( desc == "Delivery Status" ) return "0x00 - Success<br>0x01 - MAC ACK Failure<br>0x02 - CCA Failure<br>0x15 - Invalid destination endpoint<br>0x21 - Network ACK Failure<br>0x22 - Not Joined to Network<br>0x23 - Self-addressed<br>0x24 - Address Not Found<br>0x25 - Route Not Found<br>0x26 -Broadcast source failed to hear a neighbor relay the message<br>0x2B - Invalid binding table index<br>0x2C - Resource error lack of free buffers, timers, etc.<br>0x2D - Attempted broadcast with APS transmission<br>0x2E - Attempted unicast with APS transmission, but EE=0<br>0x32 - Resource error lack of free buffers, timers, etc.<br>0x74 - Data payload too large<br>0x75 - Indirect message unrequested"
+			if( desc == "DestEP" ) return "Destination endpoint.<br>0x00 - ZDO"
+			if( desc == "Destination Address" ) return "Address of the final destination node of this network level transmission."
+			if( desc == "DeviceType" ) return "0 - Coordinator<br>1 - Router<br>2 - End Device"
+			if( desc == "DigiProfileId" ) return "Set to Digi's application profile ID."
+			if( desc == "DigiManuId" ) return "Set to Digi's manufacturer ID."
+			if( desc == "DigitalMask" ) return "Bitmask field that indicates which digital IO lines on the remote have sampling enabled (if any).<br>NA | NA | NA | CD/DIO 12 | PWM/DI O11 | RSSI/DI O10 | NA | NA | CTS/DI O7 | RTS/DI O6 | ASSOC DIO5 | DIO4 | AD3/DI O3 | AD2/DI O2 | AD1/DI O1 | AD0/DI O0 "
+			if( desc == "Discovery Status" ) return "0x00 - No Discovery Overhead<br>0x01 - Address Discovery<br>0x02 - Route Discovery<br>0x03 - Address and Route<br>0x40 - Extended Timeout Discovery"
+			if( desc == "FormatID" ) return "Byte reserved to indicate format of additional packet information which may be added in future firmware revisions.  In the current firmware version 0x00 is returned in this field"
+			if( desc == "FrameID" ) return "Identifies the UART data frame for the host to match with a subsequent response. If zero, no response is requested.";
+			if( desc == "FrameID_" ) return "This should always be set to 0.";
+			if( desc == "FrameID_3" ) return "The same value which was passed in the request."
+			if( desc == "FrameID_2" ) return "Matches the Frame ID of the associated registration request."
+			if( desc == "FrameID_20" ) return "Set to a value which will be passed back in the Tx Status frame.<br>0 disables the Tx Status frame."
+			if( desc == "IPv4DestAddr" ) return "When protocol is UDP, use 0xFFFFFFFF for broadcast."
+			if( desc == "IPv4SrcAddr" ) return "When protocol is UDP, 0xFFFFFFFF means broadcast."
+			if( desc == "IPTxOptions" ) return "Bit field:<br>Bit 1 =<br>1 - Terminate socket after tx complete.<br> 0 - Leave socket open (use TCP timeout)<br>Ignore bit for UDP packets.<br>All other bits are reserved and should be set to zero."
+			if( desc == "Key" ) return "16 byte link key."
+			if( desc == "Length" ) return "Number of bytes to follow (38=0x26).<br>If length increases, new items are added to the end."
+			if( desc == "ModemStatus" ) return "0 - Hardware reset<br>1 - Watchdog timer reset<br>2 - Joined network (routers and end devices)<br>3 - Disassociated<br>6 - Coordinator started<br>7 - Network security key was updated<br>0x0B - Network Woke Up<br>0x0C - Network Went To Sleep<br>0x0D - Voltage supply limit exceeded (PRO S2B only)<br>0x11 - Modem configuration changed while join in progress<br>0x80+ - stack error"
+			if( desc == "NewAddr" ) return "Address to which DH and DL are being set to"
+			if( desc == "NI String" ) return "Node identifier string on the remote device.<br>The NI-String is terminated with a NULL (0x00) byte."
+			if( desc == "NumSamples" ) return "Number of sample sets in the payload.<br>(Always set to 1)"
+			if( desc == "OldAddr" ) return "Address to which DH and DL were previously set to."
+			if( desc == "Options" ) return "Transmit options bitfield.<br>Unused bits must be set to 0.<br>0x01 - Disable retries and route repair<br>0x20 - Enable APS encryption (if EE=1) Enabling APS encryption decreases the maximum number of RF payload bytes by 4 (below the value reported by NP).<br>0x40 - Use the extended transmission timeout for this destination.  Setting the extended timeout bit causes the stack to set the extended transmission timeout for the destination address."
+			if( desc == "Options_" ) return "Set to 0."
+			if( desc == "Options_1" ) return "0x01 - Disable retries and route repair (XTEND and XBEE)<br>0x02 - Don't repeat this packet (not implemented)<br>0x04 - Send packet with Broadcast Pan ID (XBEE only)<br>0x08 - Invoke Traceroute (XTEND version 8030 only)<br>0x10 (XB868DP) If the packet would be delayed due to duty cycle then purge it.  All other bits must be set to 0"
+			if( desc == "Options_2" ) return "0x01 - Packet was acknowledged.<br>0x02 - Packet received as a broadcast.<br>0x04 - Packet received on broadcast PAN (XBEE only)."
+			if( desc == "Payload" ) return "List of bytes which consitute the payload of the frame."
+			if( desc == "Options_3" ) return "0x01 - Disable retries and route repair (XTEND and XBEE)<br>0x02 - Force a long header to precede this packet<br>0x04 - Disable Sending of long header, even if BT time has expired.  All other bits must be set to zero.<br>0x08 - Invoke Traceroute (EXTEND version 8030 only).  If bits 1 and 2 are both set, forcing the long header overrides disabling the long header.  Bits 1 and 2 were introduced in releasee 206A."
+			if( desc == "ProfileID" ) return "Destination Profile ID.<br>0x0000 - ZDO<br>0x0104 - Home Automation<br>0x0109 - Smart Energy<br>0xC105 - Digi Manufacturer Specific Application Profile ID"
+			if( desc == "Protocol" ) return "Protocol to use for the transmitted data:<br>0 - UDP<br>1 - TCP"
+			if( desc == "Queued AT CmdData" ) return "If present, defer setting the register to this value until an AC occurs.<br>If absent, get the value of the register.<br>String values should be terminated with a zero byte."
+			if( desc == "Radius" ) return "Sets the maximum number of hops for a broadcast transmission. If zero, the network maximum hops value will be used."
+			if( desc == "Rcv Options" ) return "0x01 - Packet Acknowledged<br>0x02 - Packet was a broadcast packet<br>0x20 - Packet encrypted with APS encryption<br>0x40 - Packet was sent from an end device (if known)<br>Note: Option values can be combined.  For example, a 0x40 and a 0x01 will show as a 0x41.<br>Other possible values: 0x21, 0x22, 0x41, 0x42, 0x60, 0x61, 0x62."
+			if( desc == "RcvdData" ) return "Received RF data."
+			if( desc == "Receiver Address" ) return "Address of the node to which the data packet was just sent (or attempted to send to)."
+			if( desc == "RemoteCmdOptions" ) return "Transmit options bitfield.<br>Unused bits must be set to 0.<br>0x01 - Disable ACK<br>0x02 - Apply changes on remote device.  Otherwise an AC must be sent before changes will take effect.<br>0x40 - Use extended transmission timeout.<br>"
+			if( desc == "RemStatus" ) return "0 - OK<br>1 - ERROR<br>2 - Invalid Command<br>3 - Invalid Parameter<br>4 - Remote Command Transmission Failed."
+			if( desc == "RFData" ) return "Data payload."
+			if( desc == "RFData_1" ) return "Up to 100 bytes of payload.  Up to 2048 bytes for XTend."
+			if( desc == "RF_Data_20" ) return "Up to 1400 bytes of data"
+			if( desc == "#RouteRecords" ) return "The number of addresses in the source route excluding source and destination."
+			if( desc == "RouteRecords" ) return "16-bit network addresses of intermediate nodes in the route between source and destination."
+			if( desc == "RSSI" ) return "Received Signal Strength (dBm) of last received packet.<br>Not applicable in ZigBee firmware (set to 0)."
+			if( desc == "Reserved" ) return "Reserved."
+			if( desc == "Responder Address" ) return "Address of the node which generated this Route Information Packet after sending (or attempting to send) the packet on to the next hop (the Receiver Node)."
+			if( desc == "Rsvrd" ) return "Reserved field. Undefined value."
+			if( desc == "RxData" ) return "Up to 100 bytes (XBEE).  Up to 2048 bytes for XTend."
+			if( desc == "Rx_Data_1" ) return "Contains DIO and ADC data."
+			if( desc == "Samples" ) return "If the sample set includes any digital IO lines (Digital Channel Mask != 0 ), then the first two bytes contain samples for all enabled digital IO lines.<br>DIO lines that do not have sampling enabled return 0.<br>Bits in these 2 bytes map the same as they do in the Digital Channels Mask field.<br>If the sample set includes any analog input lines (Analog Channel Mask != 0), each enabled analog input returns a 2-byte value indicating the A/D measurement of that input.  Analog samples are ordered sequentially from AD0/DIO0 to AD3/DIO3, to the supply voltage."
+			if( desc == "SrcEP" ) return "Source endpoint."
+			if( desc == "Source Event" ) return "0x11 - NACK, 0x12 - Trace Route"
+			if( desc == "SrcEvent" ) return "1 - Frame sent by node identification push button event (see D0 command).<br>2 - Frame sent after joining event occurred (see JN command).<br>3 - Frame sent after power cycle event occurred (see JN command)."
+			if( desc == "Source Address" ) return "Address of the source node of this network level transmission."
+			if( desc == "Status_" ) return "Always 0x00 - Success."
+			if( desc == "Status_2" ) return "Registration request status:<br>Version 3x19<br>0x00 - Success<br>0xB3 - Invalid Address<br>0xFF - Key not found<br><br>Version 3x1A+<br>0x00 - Success<br>0x01 - Key too long<br>0xB1 - Address not found in the key table<br>0xB2 - Key value is invalid (0x00 and 0xFF are reserved values)<br>0xB4 - Key table is already full"
+			if( desc == "Status_3" ) return "0x00 - Standard Security Secured Rejoin<br>0x01 - Standard Security Unsecured Join<br>0x02 - Device Left Network<br>0x03 - Standard Security Unsecured Rejoin<br>0x04 - High Security Secured Rejoin<br>0x05 - High Security Unsecured Join<br>0x07 - High Security Unsecured Rejoin"
+			if( desc == "Status_4" ) return "0 - OK<br>1 - ERROR<br>2 - Invalid command<br>3 - Invalid param<br>4 - Tx failure"
+			if( desc == "Status_20" ) return "Reserved."
+			if( desc == "Status_89" ) return "0x00 - Success, no errors were detected on transmission.<br>0x01 - An expected MAC acknowledgement never occurred.<br>0x02 - CCA failure.<br>0x03 - Transmission was purged because it was attempted before the stack was up.<br>0x04 - Physical error occurred on the interface with the WiFi transceiver.<br>0x18 - No Buffers.<br>0x03 - Packet was purged without being transmitted.<br>0x21 - An expected network acknowledgement never occurred.<br>0x22 - Not joined to network.<br>0x23 - Self-addressed.<br>0x24 - Address not found.<br>0x25 - Route not found.<br>0x26 - Broadcast relay was not heard.<br>0x2B - Invalid Binding Table Index.<br>0x2C - Invalid Endpoint.<br>0x31 - A software error occurred.<br>0x32 - Resource Error.<br>0x74 - Data payload too large.<br>0x76 - Attempt to create a client socket failed.<br>0xBB - Key not authorized."
+
+			if( desc == "TempRead" ) return "Indicates the two-byte value read from a digital thermometer if present.<br>Set to 0xFFFF if not found."
+			if( desc == "TimeStamp" ) return "Value of the timer in the local node at time of generating message."
+			if( desc == "Transmit Retries" ) return "Number of transmission retries which took place."
+			if( desc == "64IPSrcAddr" ) return "Align IP address to low 32-bits of the field.<br>Set the other bytes to zero.<br>For example, 192.168.0.103 becomes 00 00 00 00 C0 A8 00 67."
+			if( desc == "RSSI_20" ) return "RSSI at time of join."
+			if( desc == "RcvOptions_20" ) return "No receive options are defined at this time."
+			if( desc == "#Samples_20" ) return "Number of sample sets in the payload.<br>(Always set to 1)"
+			if( desc == "DigitalChannelMask" ) return "Bitmask field that indicates which digital IO lines on the remote have sampling enabled (if any)."
+			if( desc == "AnalogChannelMask" ) return "Bitmask field that indicates which analog IO lines on the remote have sampling enabled (if any).<br>The most significant bit indicates if the Vcc value is included in the frame."
+			if( desc == "DigitalSamples_20" ) return "If the sample set includes any digital IO lines then these two bytes contain samples for all enabled digital IO lines.<br>DIO lines that do not have sampling enabled return 0."
+			if( desc == "AnalogSample_20" ) return "If the sample set includes any analog input lines then each enabled analog input returns a 2 byte value for the input's A/D measurement.<br>Analog samples are ordered sequentially from AD0/DIO0 to AD4/Dio4, to the supply voltage."
+			return "Undefined";
+	}
+	function StripSuffix( s ){
+	// if the parameter ends with a underscore, potentially followed by other characters, remove the _foo from the end
+	// note, if two or more underscores appear in the parameter, strip off the last one and its followers.
+		for(i=s.length-1;i>=0;i--){
+					if( s[i] == '_' ) break;
+			}
+			if( i >= 0 ) return s.slice(0,i)
+			return s
+	}
+
+	function MakeTextField( thetext ){
+			var d = document.createElement("td");
+			var tn = document.createTextNode( thetext );
+			d.appendChild(tn);
+			return d;
+	}
+
+	function MakeTextFieldHeader( thetext ){
+			var d = document.createElement("th");
+			d.setAttribute("class", "is-center");
+			var tn = document.createTextNode( thetext );
+			d.appendChild(tn);
+			return d;
+	}
+
+	function MakeTextFieldDesc( thetext ){
+			var d = document.createElement("td");
+			var p = document.createElement("p");
+			var tn = document.createTextNode( thetext );
+
+			p.setAttribute("class", "small-text narrow-width");
+
+			d.appendChild(p);
+			p.appendChild(tn);
+			return d;
+	}
+
+	function MakeTextFieldId( thetext, theid ){
+			var d = document.createElement("td");
+			var tn = document.createElement( "textarea" );
+			tn.setAttribute("id",theid);
+			tn.setAttribute("rows", 1)
+			tn.setAttribute("readonly","readonly");
+			tn.innerHTML = thetext;
+			d.appendChild(tn);
+			return d;
+	}
+
+	function BuildFrame(){
+		// in Table2
+		// for each field in the selected frame
+		//		show a descriptor, textarea, parameter datatype, and description
+		// at the end provide a textarea for the built packet hex values
+		// and a button to build the packet.
+
+			e = document.getElementById("selectedframe")
+
+			var s = e.options[e.selectedIndex].value
+
+			var n = eval( s.substr(0,s.indexOf(" ")) )
+
+			for(i=0;i<links.length;i++){
+					if( links[i][0] == n ) break;
+			}
+			n = i;
+
+			s = GetLinks(n);
+
+		var t = document.createElement("table");
+		t.setAttribute("valign","top")
+		t.setAttribute("border", 0)
+		t.setAttribute("class","pure-table table-center no-border")
+
+		h = document.createElement("thead");
+
+		var r = document.createElement("tr");
+		var d;
+		var tn;
+		var headers = ["Field Name","Field Value","Data Type","Description"];
+		for(i=0;i<headers.length;i++){
+				r.appendChild(MakeTextFieldHeader( headers[i] ) );
+		}
+
+		h.appendChild(r);
+		t.appendChild(h);
+
+		r = document.createElement("tr");
+		r.appendChild( MakeTextField( "Delimiter") );
+		r.appendChild( MakeTextField( "7E" ) );
+		r.appendChild( MakeTextField( "Byte" ) );
+		r.appendChild( MakeTextFieldDesc( "Start Delimiter" ) );
+		t.appendChild( r );
+
+		r = document.createElement("tr");
+		r.appendChild( MakeTextField( "Length") );
+		r.appendChild( MakeTextFieldId( "####", "Length" ) );
+		r.appendChild( MakeTextField( "Word" ) );
+		r.appendChild( MakeTextFieldDesc( "Number of bytes between length and checksum fields." ) );
+		t.appendChild( r );
+
+		var thelist = s[2];
+		var i;
+		for(i=0;i<thelist.length;i++) {
+			var item = thelist[i];
+			var r = document.createElement("tr");
+
+			// field label
+			var d = document.createElement("td");
+			var x = document.createTextNode(StripSuffix(item[0]))
+			d.appendChild(x);
+			r.appendChild(d);
+
+			// field input
+			d = document.createElement("td")
+			var x = document.createElement("textarea")
+			// The first field is always the API Frame Type and there should be no need to change this
+			if(i==0) {
+				x.setAttribute("readonly");
+			}
+			x.setAttribute("rows", 1);
+			var thecode = "f"+i.toString();
+			x.setAttribute("id",thecode)
+
+			x.innerHTML = item[1].defaultvalue;
+
+			d.appendChild(x)
+			r.appendChild(d);
+
+			// field data type
+			d = document.createElement("td")
+			x = document.createTextNode(item[1].thetype)
+			d.appendChild(x)
+			r.appendChild(d)
+
+			// field description
+			d = document.createElement("td")
+			d.setAttribute("bgcolor","#FFFFFF")
+			if( i == 0 )
+					d.innerHTML = "<p class=\"small-text narrow-width\">" + s[1] + "</p>";
+			else
+					d.innerHTML = "<p class=\"small-text narrow-width\">" + DescLookup(item[0]) + "</p>";
+			r.appendChild(d)
+
+			t.appendChild(r);
+		}
+
+		r = document.createElement("tr");
+		r.appendChild( MakeTextField( "Checksum") );
+		r.appendChild( MakeTextFieldId( "##", "Checksum" ) );
+		r.appendChild( MakeTextField( "Byte" ) );
+		r.appendChild( MakeTextFieldDesc( "0xFF minus 8-bit sum of bytes between the length and checksum fields." ) );
+		t.appendChild( r );
+
+		var t2 = document.getElementById("Table2")
+		while(t2.hasChildNodes()) {
+			t2.removeChild(t2.lastChild)
+		}
+
+		t2.appendChild(t);
+
+		var e0 = document.getElementById("f0")
+		e0.innerHTML = d2h(s[0],2)
+
+	}
+	function SetupFrameTypes(n){
+
+			theframes = [
+			[0xff, 0x00, 0x01, 0x07, 0x08, 0x09, 0x10, 0x11, 0x17, 0x20, 0x21, 0x24, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8d, 0x8e, 0x8f, 0x90, 0x91, 0x92, 0x94, 0x95, 0x97, 0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xb0], // All Frames
+			[0x00,0x01,0x08,0x09,0x17,0x80,0x81,0x82,0x83,0x88,0x89,0x8A,0x97], // 802.15.4
+			[0x08,0x09,0x10,0x11,0x17,0x88,0x8A,0x8B,0x8D,0x8E,0x90,0x91,0x92,0x95,0x97], // XBee DigiMesh
+			[0x08,0x09,0x10,0x11,0x17,0x21,0x24,0x88,0x8A,0x8B,0x90,0x91,0x92,0x94,0x95,0x97,0xA0,0xA1,0xA2,0xA3,0xA4,0xA5], // ZigBee
+			[0x08,0x09,0x10,0x11,0x17,0x88,0x8A,0x8B,0x90,0x91,0x92,0x94,0x95,0x97], // ZNet
+			[0x08,0x09,0x10,0x11,0x17,0x21,0x24,0x88,0x8A,0x8B,0x90,0x91,0x92,0x94,0x95,0x97,0xA0,0xA1,0xA2,0xA3,0xA4,0xA5 ], // Smart Energy
+			[0x08,0x09,0x10,0x11,0x17,0x97,0x88,0x8A,0x8B,0x90,0x91,0x95], // 868
+			[0x08,0x09,0x10,0x11,0x17,0x88,0x8A,0x8B,0x90,0x91,0x95,0x97], // 900
+			[0x00,0x07,0x08,0x09,0x20,0x80,0x88,0x89,0x8A,0x8F,0x87,0xB0], // WiFi
+			[0x01,0x81,0x89,0x8a], // XTend Legacy 2xxxx
+			[0x00,0x01,0x08,0x80,0x81,0x88,0x89,0x8a,0x8D,0x8E], // XTend DigiMesh 8xxx
+			];
+
+			var frames = theframes[n];
+
+			//alert(frames);
+			var options = "";
+
+			for(i=0;i<frames.length;i++){
+					for(j=0;j<links.length;j++){
+							if( links[j][0] == frames[i] ) break;
+					}
+					meat = d2h0x(frames[i],2) +" "+links[j][1]
+					option = "<option value=" + "\""+meat+"\"" + ">" + meat + "</option>";
+					options += option;
+			}
+			return options
+
+	}
+
+	function ChangeFrames(){
+			var n = document.getElementById("DeviceType").selectedIndex;
+			BuildPage(n);
+			BuildFrame();
+	}
+
+	function BuildPage(n){
+
+			var t1;
+			t1 = "<td><form class=\"pure-form\"><fieldset><label for=\"selectedFrame\">Frame Type:</label> <select name=\"selectedframe\" id=\"selectedframe\" onchange=\"BuildFrame()\">";
+
+			t1 += SetupFrameTypes(n);
+
+			t1 += "</select> </td>";
+
+			t2 = "<td> API Mode:<select name=\"APIMode\" id=\"APIMode\"> <option>API 1</option> <option>API 2</option> </select> </td>";
+
+			t3 = "<td> Device Type:<select name=\"DeviceType\" id=\"DeviceType\" onchange=\"ChangeFrames()\"> <option>All Frames</option><option>802.15.4</option><option>XBee DigiMesh</option><option>ZigBee</option><option>ZNet 2.5</option><option>Smart Energy</option><option>868</option><option>900</option><option>WiFi</option><option>XTend Legacy 2xxx</option><option>XTend DigiMesh 8xxx</option></select></td></fieldset></form>";
+
+			var d = document.getElementById("Table1");
+			d.innerHTML = "<tr>" + t1 + t2 + t3 + "</tr>";
+
+			var sel = document.getElementById("DeviceType");
+			sel.selectedIndex = n;
+
+	}
+
+	function LoadPage(){
+	// One can pass parameters to this page
+	// ?<frame>&<apmode>&<device>
+	// for example, "?4&0&0" would yield 0x08 AT Command, AP1, and All Frames for the device
+	// a 4th argument overwrites the "f2" field value
+	// so ?4&0&0&SH would initialize the AT Command frame-form to use an AT Command of SH.
+	//
+			BuildPage(0);
+			thecmd = window.location.search.substring(1).split('&');
+			if( thecmd.length == 0 ) return;
+
+			if( thecmd.length > 0 ) document.getElementById("selectedframe").selectedIndex = thecmd[0];
+			if( thecmd.length > 1 ) document.getElementById("APIMode").selectedIndex = thecmd[1];
+			if( thecmd.length > 2 ) document.getElementById("DeviceType").selectedIndex = thecmd[2];
+
+			BuildFrame();
+
+			if( thecmd.length > 3 ) document.getElementById("f2").innerHTML = thecmd[3];
+
+	}
+
+	function MakeAsciiTable(n) {
+		var thelist = GetLinks(n)[2];
+		var result="";
+		var i;
+		var item;
+		var r = new Array();
+		var length;
+
+		// create a list of hex bytes for the frame
+		// for each field in the frame
+		//		extract the data from the textarea
+		//		convert to hex bytes
+		// prepend the start delimiter and length bytes
+		// calculate and append the checksum byte
+		// do escaping if AP2 mode is selected
+		for(i=0;i<thelist.length;i++){
+					var name = "f"+i.toString();
+					var field = document.getElementById(name).value
+					var item = "";
+					item = thelist[i][1].GetBytes(field,thelist[i][1].FieldLength);
+			result += item
+		}
+
+		// add 7e delimiter, length bytes, checksum byte, capitalize, insert space between bytes
+		// calculate checksum
+		var checksum = 0;
+		for(i=0;i<result.length;i+=2){
+			checksum += parseInt("0x"+result.substr(i,2))
+		}
+
+		checksum = 0xff - (checksum%256);
+		checksum = d2h(checksum,2);
+
+		length = d2h(result.length/2,4)
+
+		// assemble start delimiter, length bytes, frame, and checksum into a hex string
+		result = "7E" + length + result + checksum;
+
+			document.getElementById("Length").innerHTML = length;
+			document.getElementById("Checksum").innerHTML = checksum;
+
+		// shift to upper case
+		result = result.toUpperCase();
+			result = ApplyEscapingMode( result );
+
+		// insert a space between bytes
+		var result2 = result.substr(0,2);
+		for(i=2;i<result.length;i+=2) result2 += " " + result.substr(i,2);
+
+		// convert to Ruby Array
+		var resultRubyArray = "[ 0x" + result2.replace(/ /g, ", 0x") + " ]";
+
+		// Frame Header + API Frame
+		r[0] = "+----------------------------+";
+		r[1] = "|___________Header___________|";
+		r[2] = "| SDelim | DlenMSB | DlenLSB |";
+		r[3] = "+--------+---------+---------+";
+		r[4] = "|  0x7E  |   0x" + length[0] + length[1] + "  |   0x" + length[2] + length[3] + "  |";
+		r[5] = "+--------+---------+---------+";
+
+		// Frame contents
+		for(i=0;i<thelist.length;i++) {
+			var name = "f"+i.toString();
+			var field = document.getElementById(name).value
+			var fieldValue;
+
+			fieldValue = "0x" + thelist[i][1].GetBytes(field,thelist[i][1].FieldLength);
+
+			if(fieldValue.length > 2) {
+				var start = thelist[i][2].r0.length - fieldValue.length;
+
+				// Let's add the separator
+				if(i > 0) {
+					r[0] += asciiFieldSeparator.r0;
+					r[1] += asciiFieldSeparator.r1;
+					r[2] += asciiFieldSeparator.r2;
+					r[3] += asciiFieldSeparator.r3;
+					r[4] += asciiFieldSeparator.r4;
+					r[5] += asciiFieldSeparator.r5;
+				}
+
+				// If we have at any point a field with unimplemented ASCII Table, we give up
+				if (thelist[i][2].r0[0] == "!") {
+					document.getElementById("asciiFrame").innerHTML = thelist[i][2].r0
+					return;
+				}
+
+				r[0] += thelist[i][2].r0;
+				r[1] += thelist[i][2].r1;
+				r[2] += thelist[i][2].r2;
+				r[3] += thelist[i][2].r3;
+
+				if(start > 0) {
+					// The field name is larger than the value
+					for(j=0;j<start/2;j++) {
+						fieldValue = " " + fieldValue;
+					}
+					r[4] += fieldValue;
+
+					for(j=fieldValue.length;j<thelist[i][2].r0.length;j++) {
+						r[4] += " ";
+					}
+				}
+				else {
+					if (start == 0) {
+						// The field is exactly the same size no padding needed
+						r[4] += fieldValue;
+					}
+					else {
+						// The field name is shorter than the value
+					}
+				}
+
+				r[5] += thelist[i][2].r5;
+			}
+		}
+
+		// Frame Checksum
+		r[0] += "+------+";
+		r[1] += "|      |";
+		r[2] += "| CSum |";
+		r[3] += "+------+";
+		r[4] += "| 0x" + checksum + " |";
+		r[5] += "+------+";
+
+		// Frame Label starting location
+		//var start = (r[1].length - 30 - 8) / 2 - 3;
+		var startIndex = r[1].length - 30 - 8 - 5;
+		if (startIndex > 2) {
+			start = startIndex / 2 - 1;
+		}
+		else {
+			start = 0;
+		}
+		r[1] = r[1].replaceAt(31+start, "F");
+		r[1] = r[1].replaceAt(32+start, "r");
+		r[1] = r[1].replaceAt(33+start, "a");
+		r[1] = r[1].replaceAt(34+start, "m");
+		r[1] = r[1].replaceAt(35+start, "e");
+
+		document.getElementById("asciiFrame").innerHTML = r[0] + "\n" + r[1] + "\n" + r[2] + "\n" + r[3] + "\n" + r[4] + "\n" + r[5];
+	}
+	</script>
+</head>
+<body onload="LoadPage();">
+
+<div class="header">
+		<div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
+				<a class="pure-menu-heading" href="">XBee Frame Generator</a>
+		</div>
+</div>
+
+<div class="content-wrapper">
+		<div class="content">
+				<h2 class="content-head is-center">Choose your frame</h2>
+				<p id="Table1" class="is-center">
+				</p>
+
+		<div class="content">
+			<h2 class="content-subhead is-center">Fill in the active fields and press the 'Build Frame' button.</h2>
+			<form class="pure-form">
+				<fieldset>
+					<p id="Table2" class="is-center"></p>
+				</fieldset>
+			</form>
+		</div>
+
+		<div class="content is-center">
+			<form class="pure-form">
+				<fieldset>
+					<label for="origPacket">Packet</label><br>
+					<input type="text" id="origPacket" readonly size="170" style="font-size: 60%"><br>
+					<label for="rubyFrame">Ruby Array</label><br>
+					<input type="text" id="rubyFrame" readonly size="170" style="font-size: 60%;"><br>
+					<label for="asciiFrame">ASCII Table</label><br>
+					<textarea id="asciiFrame" readonly rows="6" cols="170" style="font-size: 60%;"></textarea><br>
+					<input type="button" id="buildButton" class="pure-button" value="Build Frame" onclick="MakeFrame();">
+				</fieldset>
+			</form>
+		</div>
+
+</div>
+
+</body>
+</html>
