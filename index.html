@@ -803,7 +803,7 @@
 			var x = document.createElement("textarea")
 			// The first field is always the API Frame Type and there should be no need to change this
 			if(i==0) {
-				x.setAttribute("readonly");
+				x.setAttribute("readonly", "readonly");
 			}
 			x.setAttribute("rows", 1);
 			var thecode = "f"+i.toString();
